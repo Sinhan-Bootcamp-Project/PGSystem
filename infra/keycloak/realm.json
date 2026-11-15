@@ -227,7 +227,47 @@
           "protocolMapper": "oidc-hardcoded-claim-mapper",
           "config": {
             "claim.name": "permissions",
-            "claim.value": "control:check",
+            "claim.value": "control:check fep:send",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "sinhan-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "fep-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "fep-service-dev-only",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "redirectUris": [],
+      "webOrigins": [],
+      "attributes": {},
+      "defaultClientScopes": [
+        "basic"
+      ],
+      "protocolMappers": [
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": {
+            "claim.name": "permissions",
+            "claim.value": "institution:message",
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false"
@@ -267,7 +307,7 @@
           "protocolMapper": "oidc-hardcoded-claim-mapper",
           "config": {
             "claim.name": "permissions",
-            "claim.value": "test:admin wallet:read payment:read merchant:read",
+            "claim.value": "test:admin wallet:read payment:read merchant:read settlement:run fep:read",
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false"

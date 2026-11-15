@@ -28,6 +28,14 @@ services:
     image: sinhan-team/payment-service:${RELEASE_SHA:?Set RELEASE_SHA to a verified commit}
     environment:
       OIDC_ISSUER: http://localhost:38081/realms/food
+  fep-service:
+    image: sinhan-team/fep-service:${RELEASE_SHA:?Set RELEASE_SHA to a verified commit}
+    environment:
+      OIDC_ISSUER: http://localhost:38081/realms/food
+  institution-simulator:
+    image: sinhan-team/institution-simulator:${RELEASE_SHA:?Set RELEASE_SHA to a verified commit}
+    environment:
+      OIDC_ISSUER: http://localhost:38081/realms/food
   merchant-simulator:
     image: sinhan-team/merchant-simulator:${RELEASE_SHA:?Set RELEASE_SHA to a verified commit}
     environment:

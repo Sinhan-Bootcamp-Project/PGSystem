@@ -53,7 +53,9 @@ docker compose down
 | agent-service | Python / FastAPI | `agent`: 조건 추출·후보 생성 결과·RAG 근거 |
 | benefit-service | Java / Spring Boot | `benefits`: 버전 규칙·월 혜택 예약/사용 |
 | control-service | Java / Spring Boot | `control`: 검증 스냅샷·승인·실행 허가·감사 이력 |
-| payment-service | Java / Spring Boot | `payments`: 시연 잔액·결제·환불 원장 |
+| payment-service | Java / Spring Boot | `payments`: 결제·페이머니·복식부기 원장·일 마감 대사·Outbox |
+| fep-service | Java / Spring Boot | `fep`: 전문 로그·장애 규칙. 한끼와 가상 금융기관 사이의 유일한 창구 |
+| institution-simulator | Java / Spring Boot | `inst_card`·`inst_bank`·`inst_kftc`·`inst_bok`: 기관마다 별도 DB 계정 |
 | merchant-simulator | Python / FastAPI | 독립 SQLite 볼륨: 메뉴·재고·예약·확정 |
 | keycloak | OIDC 제공자 | PostgreSQL의 별도 `keycloak` 데이터베이스 |
 
@@ -78,15 +80,17 @@ Java 서비스는 `presentation`, `application`, `domain`, `infrastructure`로 �
 
 ## API와 인증
 
-공개 API는 다음 세 개입니다. 요청마다 Bearer access token을 전달합니다.
+공개 API는 다음과 같습니다. 요청마다 Bearer access token을 전달합니다.
 
 ```text
 POST /v1/purchase-requests                 Idempotency-Key 필수; 202
 GET  /v1/purchase-requests/{id}             소유자만 조회
 POST /v1/proposals/{id}/approvals           {"version": 1}; 202
+GET  /v1/paymoney/balance                   페이머니 잔액
+POST /v1/paymoney/charges                   Idempotency-Key 필수; {"amountKrw": 10000}
 ```
 
-내부 API와 권한 표는 `contracts/internal-api.md`를 참고하세요. 주문 실행은 `order-worker` 서비스 계정, 고객 승인은 로그인 사용자의 토큰으로 호출합니다. Agent의 권한은 가맹점 읽기뿐이며 결제·승인을 실행할 수 없습니다. 모든 서비스에서 JWT 발급자·서명·audience·만료·주체와 endpoint 권한을 확인합니다.
+내부 API와 권한 표는 `contracts/internal-api.md`, 결제·FEP·가상 금융기관 구조는 `docs/payment-core.md`를 참고하세요. 주문 실행은 `order-worker` 서비스 계정, 고객 승인은 로그인 사용자의 토큰으로 호출합니다. Agent의 권한은 가맹점 읽기뿐이며 결제·승인을 실행할 수 없습니다. 모든 서비스에서 JWT 발급자·서명·audience·만료·주체와 endpoint 권한을 확인합니다.
 
 ## LangGraph·로컬 Qwen
 

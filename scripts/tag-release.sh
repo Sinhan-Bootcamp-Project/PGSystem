@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 release_sha="${RELEASE_SHA:-$(git rev-parse HEAD)}"
 [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid release SHA' >&2; exit 1; }
 images=()
-for service in gateway order-service order-worker agent-service benefit-service control-service payment-service merchant-simulator; do
+for service in gateway order-service order-worker agent-service benefit-service control-service payment-service fep-service institution-simulator merchant-simulator; do
   image="sinhan-team/$service:$release_sha"
   docker tag "sinhan-food-$service:latest" "$image"
   images+=("$image")
