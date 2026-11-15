@@ -19,8 +19,11 @@
 | 통제 | POST /internal/v1/approvals/{proposalId}/revoke | {} → REVOKED | control:prepare |
 | 결제 | POST /internal/v1/payments | ExecutionCommand → PaymentResult | payment:charge |
 | 결제 | GET /internal/v1/payments/{executionId} | PaymentResult | payment:read |
-| 결제 | POST /internal/v1/payments/{executionId}/refund | {} → PaymentResult | payment:refund |
-| 결제 | GET /internal/v1/wallets/{userId} | 결제수단별 잔액 Map | wallet:read |
+| 결제 | POST /internal/v1/payments/{executionId}/cancel (`/refund` 별칭) | {} → PaymentResult | payment:refund |
+| 결제 | POST /internal/v1/settlements/{date}/run, GET /internal/v1/settlements/{date} | 일 마감·대사 리포트 | settlement:run |
+| FEP | POST /fep/v1/messages | Envelope(공통 헤더+바디) → Envelope | fep:send |
+| 기관 | POST /institutions/v1/messages | FEP 전용 | institution:message |
+| 결제 | GET /internal/v1/wallets/{userId} | CARD_* 남은 한도, LOCAL·PAYMONEY 잔액 | wallet:read |
 | 가맹점 | GET /internal/v1/catalog | 가맹점·메뉴·재고 목록 | merchant:read |
 | 가맹점 | POST /internal/v1/baskets/validate | Basket → 현재 데이터로 정규화한 Basket | merchant:read |
 | 가맹점 | POST /internal/v1/reservations | ExecutionCommand → MerchantResult | merchant:write |
@@ -48,6 +51,7 @@
 `compose.test.yaml`에서만 `ENABLE_FAULTS=true`로 활성화하고 test-admin 토큰을 사용합니다.
 
 - 결제 `POST /internal/v1/test/faults/{name}`: charge_response_lost, refund_response_lost, refund_unavailable. body: `{"count":1}`.
+- FEP `POST /fep/v1/test/faults`: `{"institution":"CRD","messageType":"CARD_APPROVAL","mode":"RESPONSE_LOST","count":1}`. mode = DELAY·NO_RESPONSE·RESPONSE_LOST·REJECT. 자세한 내용은 `docs/payment-core.md`.
 - 가맹점 같은 경로: confirm_rejected, confirm_response_lost, confirm_response_delay(확정 후 15초 응답 지연).
 - 가맹점 `POST /internal/v1/test/catalog/{merchantId}/{menuId}`: `{"priceKrw":8000}` 또는 `{"stock":0}`.
-- 원장과 예약 읽기: 결제 `/internal/v1/test/ledger`, 가맹점 `/internal/v1/test/reservations`.
+- 원장과 예약 읽기: 결제 `/internal/v1/test/ledger`(분개 목록, 결제는 음수), 가맹점 `/internal/v1/test/reservations`.
