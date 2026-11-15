@@ -370,31 +370,43 @@ def test_rejected_order_and_lost_refund_response(auth):
 
 
 def test_database_isolation_and_ledger_balance(auth):
-    schemas = ["orders", "agent", "benefits", "control", "payments"]
-    tables = {
-        "orders": "requests",
-        "agent": "plan_runs",
-        "benefits": "rules",
-        "control": "approvals",
-        "payments": "transactions",
+    schemas = {
+        "orders": ("orders_app", "requests"),
+        "agent": ("agent_app", "plan_runs"),
+        "benefits": ("benefits_app", "rules"),
+        "control": ("control_app", "approvals"),
+        "payments": ("payments_app", "payments"),
+        "fep": ("fep_app", "messages"),
+        "inst_card": ("inst_card_app", "cards"),
+        "inst_bank": ("inst_bank_app", "accounts"),
+        "inst_kftc": ("inst_kftc_app", "transfers"),
+        "inst_bok": ("inst_bok_app", "current_accounts"),
     }
-    for owner in schemas:
+    for owner, (user, _) in schemas.items():
         with db_connection(
-            f"host=postgres dbname=food user={owner}_app password={owner}_dev_only",
+            f"host=postgres dbname=food user={user} password={user.removesuffix('_app')}_dev_only",
             autocommit=True,
         ) as db:
-            for other in schemas:
+            for other, (_, table) in schemas.items():
                 if owner == other:
                     continue
                 with pytest.raises(psycopg.errors.InsufficientPrivilege):
-                    db.execute(f"SELECT * FROM {other}.{tables[other]} LIMIT 1")
+                    db.execute(f"SELECT * FROM {other}.{table} LIMIT 1")
     with db_connection(
         "host=postgres dbname=food user=payments_app password=payments_dev_only options=-csearch_path=payments"
     ) as db:
-        rows = db.execute(
-            "SELECT w.user_id,w.method,w.balance_krw,500000+coalesce(sum(l.amount_krw),0) FROM wallets w LEFT JOIN transactions t ON t.user_id=w.user_id AND t.method=w.method LEFT JOIN ledger l ON l.execution_id=t.execution_id GROUP BY w.user_id,w.method,w.balance_krw"
+        # 복식부기: 전체 차변 = 대변, 계정 캐시 잔액 = 분개 합
+        assert db.execute(
+            "SELECT coalesce(sum(debit_krw-credit_krw),0) FROM journal_lines"
+        ).fetchone()[0] == 0
+        drift = db.execute(
+            "SELECT a.code FROM accounts a LEFT JOIN journal_lines l ON l.account_code=a.code"
+            " GROUP BY a.code,a.type,a.balance_krw HAVING a.balance_krw <> CASE WHEN a.type IN ('ASSET','EXPENSE')"
+            " THEN coalesce(sum(l.debit_krw-l.credit_krw),0) ELSE coalesce(sum(l.credit_krw-l.debit_krw),0) END"
         ).fetchall()
-        assert all(actual == expected for _, _, actual, expected in rows)
+        assert drift == []
+        with pytest.raises(psycopg.errors.RaiseException):
+            db.execute("UPDATE journal_lines SET debit_krw=debit_krw WHERE id=1")
 
 
 def test_previous_month_eligibility_and_concurrent_quota(auth):
