@@ -25,6 +25,13 @@ public class GatewayConfiguration {
                         "/v1/purchase-requests/**",
                         "/v1/proposals/*/approvals")
                     .uri(System.getenv().getOrDefault("ORDER_URL", "http://order-service:8080")))
+        .route(
+            "paymoney",
+            r ->
+                r.path("/v1/paymoney/**")
+                    .uri(
+                        System.getenv()
+                            .getOrDefault("PAYMENT_URL", "http://payment-service:8080")))
         .build();
   }
 

@@ -24,6 +24,16 @@ services:
     environment:
       OIDC_ISSUER: http://localhost:28081/realms/food
       ENABLE_FAULTS: "true"
+      SETTLEMENT_SCHEDULE_ENABLED: "false"
+  fep-service:
+    environment:
+      OIDC_ISSUER: http://localhost:28081/realms/food
+      ENABLE_FAULTS: "true"
+  institution-simulator:
+    environment:
+      OIDC_ISSUER: http://localhost:28081/realms/food
+      ENABLE_FAULTS: "true"
+      ALLOW_EARLY_CLOSE: "true"
   merchant-simulator:
     environment:
       OIDC_ISSUER: http://localhost:28081/realms/food
