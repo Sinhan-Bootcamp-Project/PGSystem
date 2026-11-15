@@ -44,6 +44,7 @@ public class Workflow {
                   "QUOTE_CHANGED",
                   "PROPOSAL_EXPIRED",
                   "INSUFFICIENT_BALANCE",
+                  "PAYMENT_DECLINED",
                   "APPROVAL_REVOKED")
               .contains(code)) {
         repo.change(
